@@ -1,0 +1,13 @@
+# 인증키 — 절대 커밋하지 않음 (env.example만 저장소에 포함)
+.env
+.env.*
+
+# 의존성·빌드
+node_modules/
+app/node_modules/
+app/.expo/
+app/dist/
+.vercel/
+
+# OS
+.DS_Store

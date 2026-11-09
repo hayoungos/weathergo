@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>WeatherGo</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<style>
+  /* =========================================================
+   * WeatherGo Design System (Figma: WeatherGo/Color · Spacing · 텍스트 스타일)
+   * ======================================================= */
+  :root {
+    /* Color */
+    --primary: #FFB020;
+    --primary-soft: #FFF3DD;
+    --primary-text: #B26B00;
+    --on-primary: #16202C;
+    --text: #16202C;
+    --text-sub: #5D6B7C;
+    --text-muted: #98A3B1;
+    --text-disabled: #C9D0D8;
+    --info: #003CB3;
+    --danger: #D6453D;
+    --bg: #FDFDFD;
+    --surface: #FFFFFF;
+    --surface-sheet: #F9F9FA;
+    --fill: #F4F6F9;
+    --border: #E3E8EF;
+    --overlay: rgba(16, 24, 40, .45);
+    /* 이전 이름 호환 */
+    --card: var(--surface); --sub: var(--text-sub); --muted: var(--text-muted); --rain: var(--info);
+    /* Spacing */
+    --space-2: 2px; --space-4: 4px; --space-8: 8px; --space-10: 10px; --space-12: 12px;
+    --space-16: 16px; --space-20: 20px; --space-24: 24px; --space-32: 32px; --space-48: 48px;
+    /* Radius */
+    --radius-sm: 8px; --radius-md: 14px; --radius-lg: 20px; --radius-full: 999px;
+    --radius: var(--radius-md);
+  }
+  /* Typography — 텍스트 스타일 10종 */
+  .t-display  { font-size: 44px; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; }
+  .t-title-l  { font-size: 24px; font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; }
+  .t-title-m  { font-size: 20px; font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; }
+  .t-title-s  { font-size: 18px; font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; }
+  .t-heading  { font-size: 16px; font-weight: 700; line-height: 1.4; }
+  .t-label    { font-size: 15px; font-weight: 700; line-height: 1.4; }
+  .t-body     { font-size: 15px; font-weight: 400; line-height: 1.5; }
+  .t-body-s   { font-size: 14px; font-weight: 400; line-height: 1.5; }
+  .t-caption  { font-size: 12px; font-weight: 400; line-height: 1.4; }
+  .t-caption-strong { font-size: 12px; font-weight: 700; line-height: 1.4; }
+  .c-sub { color: var(--text-sub); } .c-muted { color: var(--text-muted); } .c-info { color: var(--info); } .c-accent { color: var(--primary-text); }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; color: inherit; }
+  .app { max-width: 420px; margin: 0 auto; min-height: 100vh; padding: 0 20px 48px; }
+
+  /* ---------- 공통 ---------- */
+  .pill-btn {
+    display: block; margin: var(--space-24) auto 0; padding: var(--space-12) var(--space-24);
+    background: var(--primary); color: var(--on-primary); border: 0; border-radius: var(--radius-full);
+    font-size: 15px; font-weight: 700; line-height: 1.4; cursor: pointer;
+  }
+  .pill-btn:active { filter: brightness(.95); }
+  .empty { padding: var(--space-32) 0; text-align: center; color: var(--text-sub); }
+
+  /* ---------- 스플래시 ---------- */
+  .splash { position: fixed; inset: 0; z-index: 20; background: var(--bg); display: flex; align-items: center; justify-content: center; transition: opacity .4s; }
+  .splash.is-hidden { opacity: 0; pointer-events: none; }
+  .splash img { width: 147px; height: auto; display: block; }
+  .splash__wordmark { font-size: 28px; font-weight: 800; color: #001D3B; letter-spacing: -0.02em; }
+  .splash__wordmark span { color: var(--primary); }
+
+  /* ---------- 홈 ---------- */
+  .home-head { padding-top: var(--space-20); }
+  .home-section { text-align: center; margin: var(--space-20) 0; }
+  .trip-list { display: flex; flex-direction: column; gap: var(--space-12); }
+
+  /* TripCard */
+  .trip-card {
+    width: 100%; display: flex; align-items: center; gap: var(--space-12); padding: var(--space-20);
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+    text-align: left; cursor: pointer;
+  }
+  .trip-card:active { background: var(--primary-soft); }
+  .trip-card__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-4); }
+  .trip-card__name-row { display: flex; align-items: center; gap: var(--space-8); }
+  .trip-card__name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .badge { flex: none; color: var(--primary-text); background: var(--primary-soft); padding: var(--space-2) var(--space-8); border-radius: var(--radius-sm); }
+  .trip-card__period { flex: none; }
+
+  /* ---------- 여행 추가 모달 ---------- */
+  .modal { position: fixed; inset: 0; background: var(--overlay); display: flex; align-items: center; justify-content: center; padding: var(--space-20); z-index: 10; animation: fade .15s ease; }
+  @keyframes fade { from { opacity: 0; } }
+  .sheet { width: 100%; max-width: 380px; max-height: 92vh; overflow-y: auto; background: var(--surface-sheet); border-radius: var(--radius-lg); padding: var(--space-20); display: flex; flex-direction: column; gap: var(--space-12); }
+  .sheet__head { position: relative; text-align: center; }
+  .sheet__close { position: absolute; right: -6px; top: -4px; width: 36px; height: 36px; border: 0; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .section { background: var(--surface); border-radius: var(--radius-md); padding: var(--space-16); display: flex; flex-direction: column; gap: var(--space-10); }
+  .section__error { color: var(--danger); }
+  .input {
+    width: 100%; padding: var(--space-12); border: 1.5px solid var(--fill); border-radius: var(--radius-sm);
+    background: var(--fill); font: inherit; font-size: 15px; line-height: 1.5; color: var(--text); outline: none;
+  }
+  .input:focus { border-color: var(--primary); background: var(--surface); }
+  .input::placeholder { color: var(--text-muted); }
+  .results { margin-top: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+  .result { display: block; width: 100%; padding: var(--space-10) var(--space-12); background: var(--surface); border: 0; border-bottom: 1px solid var(--border); text-align: left; cursor: pointer; }
+  .result:last-child { border-bottom: 0; }
+  .result:hover, .result:focus { background: var(--primary-soft); outline: none; }
+  .no-result { padding: var(--space-12); color: var(--text-sub); }
+  .picked { display: flex; align-items: center; justify-content: space-between; padding: var(--space-12); border-radius: var(--radius-sm); background: var(--primary-soft); }
+  .picked__name { display: flex; align-items: baseline; gap: 6px; }
+  .link-btn { border: 0; background: none; cursor: pointer; }
+  .save-error { text-align: center; color: var(--danger); }
+  .sheet .pill-btn { margin-top: var(--space-4); padding-left: var(--space-32); padding-right: var(--space-32); }
+
+  /* DateRangePicker */
+  .date-boxes { display: flex; gap: var(--space-8); }
+  .date-box {
+    flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); padding: var(--space-10) var(--space-12);
+    border-radius: var(--radius-sm); background: var(--fill); border: 1.5px solid var(--fill); text-align: left; cursor: pointer;
+  }
+  .date-box.is-active { border-color: var(--primary); background: var(--surface); }
+  .date-box__value.is-empty { color: var(--text-muted); }
+  .cal { padding-top: var(--space-12); border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: var(--space-8); animation: fade .15s ease; }
+  .cal__guide { color: var(--primary-text); }
+  .cal__head { display: flex; align-items: center; justify-content: space-between; }
+  .cal__nav { width: 36px; height: 32px; border: 0; border-radius: var(--radius-sm); background: var(--fill); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .cal__nav:disabled { opacity: .35; cursor: default; }
+  .cal__grid { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: var(--space-4); }
+  .cal__week { padding: var(--space-4) 0; text-align: center; color: var(--text-sub); }
+  .cal__week.is-sun { color: var(--danger); }
+  .cal__day { height: 38px; border: 0; background: none; color: var(--text); cursor: pointer; border-radius: var(--radius-sm); position: relative; }
+  .cal__day:hover:not(:disabled):not(.is-edge):not(.in-range) { background: var(--fill); }
+  .cal__day.is-past { color: var(--text-disabled); cursor: default; }
+  .cal__day.is-today::after { content: ''; position: absolute; left: 50%; bottom: 4px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--primary); }
+  .cal__day.no-forecast:not(.is-edge):not(.in-range) { color: var(--text-sub); }
+  .cal__day.in-range { background: var(--primary-soft); border-radius: 0; }
+  .cal__day.is-edge { background: var(--primary); color: var(--on-primary); font-weight: 700; }
+  .cal__day.is-edge::after { background: var(--on-primary); }
+  .hint { display: flex; gap: var(--space-4); align-items: flex-start; color: var(--text-sub); }
+  .hint svg { flex: none; margin-top: 1px; }
+
+  /* ---------- 기간별 날씨 ---------- */
+  .header { position: relative; text-align: center; padding: var(--space-20) 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  .header__back { position: absolute; left: -10px; top: 18px; width: 40px; height: 40px; border: 0; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .hero { display: flex; flex-direction: column; align-items: center; gap: var(--space-4); padding: var(--space-16) 0; }
+  .list-head { display: flex; justify-content: space-between; align-items: baseline; padding: var(--space-20) 0 var(--space-10); }
+  .day-list { display: flex; flex-direction: column; gap: var(--space-10); }
+
+  /* DayCard */
+  .day-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+  .day-card.is-open { border: 1.5px solid var(--primary); }
+  .day-card__main { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: var(--space-16) var(--space-20); min-height: 70px; border: 0; background: none; text-align: left; cursor: pointer; }
+  .day-card__main:disabled { cursor: default; }
+  .day-card__date { display: flex; gap: var(--space-4); align-items: baseline; }
+  .day-card__right { display: flex; align-items: center; gap: var(--space-12); }
+  .day-card__nums { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2); min-width: 64px; }
+  .day-card__detail { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .25s ease; }
+  .day-card.is-open .day-card__detail { grid-template-rows: 1fr; }
+  .day-card__detail-inner { overflow: hidden; }
+  .day-card__detail-body { border-top: 1px solid var(--border); padding: var(--space-16) 0; display: flex; flex-direction: column; gap: var(--space-12); text-align: center; }
+  .slots { display: flex; overflow-x: auto; padding: 0 var(--space-12); scrollbar-width: none; }
+  .slots::-webkit-scrollbar { display: none; }
+
+  /* HourSlot */
+  .slot { flex: 0 0 56px; display: flex; flex-direction: column; align-items: center; gap: var(--space-4); padding: var(--space-8) 0; border-radius: var(--radius-sm); }
+  .slot.is-now { background: var(--primary-soft); }
+  .slot.is-past { opacity: .45; }
+
+  .meta { margin-top: var(--space-12); text-align: center; color: var(--text-muted); }
+  .skel { background: linear-gradient(90deg, var(--fill) 25%, #E9EDF2 37%, var(--fill) 63%); background-size: 400% 100%; animation: skel 1.4s ease infinite; border-radius: var(--radius-sm); }
+  .skel--circle { border-radius: 50%; }
+  @keyframes skel { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+  @media (prefers-reduced-motion: reduce) { .skel { animation: none; } }
+  .notice-bar { margin-bottom: var(--space-12); padding: var(--space-10) var(--space-12); border-radius: var(--radius-sm); background: var(--primary-soft); color: var(--primary-text); }
+  .fail-box { margin-top: var(--space-8); padding: var(--space-16); border-radius: var(--radius-md); background: #FDECEB; text-align: center; display: flex; flex-direction: column; gap: var(--space-4); }
+  .fail-box .t-label { color: var(--danger); }
+  .fail-box .pill-btn { margin-top: var(--space-8); padding: var(--space-8) var(--space-20); }
+</style>
+</head>
+<body>
+<main class="app" id="app"></main>
+<div id="modal-root"></div>
+
+<script>
+/* =========================================================
+ * 1. 날짜 유틸 (한국 표준시 기준)
+ * ======================================================= */
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+
+function kstNow(d = new Date()) {
+  const k = new Date(d.getTime() + 9 * 3600 * 1000);
+  return { ymd: toYmd(k.getUTCFullYear(), k.getUTCMonth() + 1, k.getUTCDate()), hour: k.getUTCHours(), minute: k.getUTCMinutes() };
+}
+function toYmd(y, m, d) { return `${y}${String(m).padStart(2, '0')}${String(d).padStart(2, '0')}`; }
+const ymdToUtc = (ymd) => new Date(Date.UTC(+ymd.slice(0, 4), +ymd.slice(4, 6) - 1, +ymd.slice(6, 8)));
+function addDays(ymd, n) {
+  const t = ymdToUtc(ymd); t.setUTCDate(t.getUTCDate() + n);
+  return toYmd(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate());
+}
+function dateRange(start, end) {
+  const out = [];
+  for (let d = start; d <= end && out.length < 400; d = addDays(d, 1)) out.push(d);
+  return out;
+}
+const weekday = (ymd) => WEEKDAYS[ymdToUtc(ymd).getUTCDay()];
+const dayParts = (ymd) => ({ md: `${+ymd.slice(4, 6)}월 ${+ymd.slice(6, 8)}일`, wd: `(${weekday(ymd)})` });
+const dayLabel = (ymd) => `${dayParts(ymd).md} ${dayParts(ymd).wd}`;
+const mdLabel = (ymd) => dayParts(ymd).md;
+const hhmm = (h) => `${String(h).padStart(2, '0')}00`;
+
+/* =========================================================
+ * 2. 정책 (PRD + 확정 사항)
+ * ======================================================= */
+const MAX_DAYS_AHEAD = 4; // 단기예보 제공 범위: 오늘 ~ D+4 (날짜 선택은 제한하지 않음)
+
+/** 지난 날짜만 선택 불가. 예보 제공 범위 밖의 날짜도 저장 가능. 당일치기 불가. */
+function validateDraft(d) {
+  const errors = {};
+  const today = kstNow().ymd;
+  if (!d.name.trim()) errors.name = '여행 이름을 입력해 주세요.';
+  if (!d.region) errors.region = '여행지를 검색해서 선택해 주세요.';
+  if (!d.startDate) errors.date = '가는 날을 선택해 주세요.';
+  else if (d.startDate < today) errors.date = '지난 날짜는 선택할 수 없어요.';
+  else if (!d.endDate) errors.date = '오는 날을 선택해 주세요.';
+  else if (d.endDate <= d.startDate) errors.date = '오는 날은 가는 날 이후로 선택해 주세요. (당일치기 불가)';
+  return errors;
+}
+
+/* =========================================================
+ * 3. 지역 데이터 — 기상청 격자 엑셀(2607)의 시·군·구 256개
+ *    [행정구역코드, 시·도, 시·군·구, nx, ny]
+ * ======================================================= */
+const REGIONS = [["5115000000","강원특별자치도","강릉시",92,131],["5182000000","강원특별자치도","고성군",85,145],["5117000000","강원특별자치도","동해시",97,127],["5123000000","강원특별자치도","삼척시",98,125],["5121000000","강원특별자치도","속초시",87,141],["5180000000","강원특별자치도","양구군",77,139],["5183000000","강원특별자치도","양양군",88,138],["5175000000","강원특별자치도","영월군",86,119],["5113000000","강원특별자치도","원주시",76,122],["5181000000","강원특별자치도","인제군",80,138],["5177000000","강원특별자치도","정선군",89,123],["5178000000","강원특별자치도","철원군",65,139],["5111000000","강원특별자치도","춘천시",73,134],["5119000000","강원특별자치도","태백시",95,119],["5176000000","강원특별자치도","평창군",84,123],["5172000000","강원특별자치도","홍천군",75,130],["5179000000","강원특별자치도","화천군",72,139],["5173000000","강원특별자치도","횡성군",77,125],["4182000000","경기도","가평군",69,133],["4128100000","경기도","고양시 덕양구",57,128],["4128500000","경기도","고양시 일산동구",56,129],["4128700000","경기도","고양시 일산서구",56,129],["4129000000","경기도","과천시",60,124],["4121000000","경기도","광명시",58,125],["4161000000","경기도","광주시",65,123],["4131000000","경기도","구리시",62,127],["4141000000","경기도","군포시",59,122],["4157000000","경기도","김포시",55,128],["4136000000","경기도","남양주시",64,128],["4125000000","경기도","동두천시",61,134],["4119400000","경기도","부천시 소사구",57,125],["4119600000","경기도","부천시 오정구",57,126],["4119200000","경기도","부천시 원미구",57,125],["4113500000","경기도","성남시 분당구",62,123],["4113100000","경기도","성남시 수정구",63,124],["4113300000","경기도","성남시 중원구",63,124],["4111300000","경기도","수원시 권선구",60,120],["4111700000","경기도","수원시 영통구",61,120],["4111100000","경기도","수원시 장안구",60,121],["4111500000","경기도","수원시 팔달구",61,121],["4139000000","경기도","시흥시",57,123],["4127300000","경기도","안산시 단원구",57,121],["4127100000","경기도","안산시 상록구",58,121],["4155000000","경기도","안성시",65,115],["4117300000","경기도","안양시 동안구",59,123],["4117100000","경기도","안양시 만안구",59,123],["4163000000","경기도","양주시",61,131],["4183000000","경기도","양평군",69,125],["4167000000","경기도","여주시",71,121],["4180000000","경기도","연천군",61,138],["4137000000","경기도","오산시",62,118],["4146300000","경기도","용인시 기흥구",62,120],["4146500000","경기도","용인시 수지구",62,121],["4146100000","경기도","용인시 처인구",64,119],["4143000000","경기도","의왕시",60,122],["4115000000","경기도","의정부시",61,130],["4150000000","경기도","이천시",68,121],["4148000000","경기도","파주시",56,131],["4122000000","경기도","평택시",62,114],["4165000000","경기도","포천시",64,134],["4145000000","경기도","하남시",64,126],["4159700000","경기도","화성시 동탄구",62,119],["4159100000","경기도","화성시 만세구",59,117],["4159500000","경기도","화성시 병점구",61,119],["4159300000","경기도","화성시 효행구",60,119],["4831000000","경상남도","거제시",90,69],["4888000000","경상남도","거창군",77,86],["4882000000","경상남도","고성군",85,71],["4825000000","경상남도","김해시",95,77],["4884000000","경상남도","남해군",77,68],["4827000000","경상남도","밀양시",92,83],["4824000000","경상남도","사천시",80,71],["4886000000","경상남도","산청군",76,80],["4833000000","경상남도","양산시",97,79],["4872000000","경상남도","의령군",83,78],["4817000000","경상남도","진주시",81,75],["4874000000","경상남도","창녕군",87,83],["4812500000","경상남도","창원시 마산합포구",89,76],["4812700000","경상남도","창원시 마산회원구",89,76],["4812300000","경상남도","창원시 성산구",91,76],["4812100000","경상남도","창원시 의창구",90,77],["4812900000","경상남도","창원시 진해구",91,75],["4822000000","경상남도","통영시",87,68],["4885000000","경상남도","하동군",74,73],["4873000000","경상남도","함안군",86,77],["4887000000","경상남도","함양군",74,82],["4889000000","경상남도","합천군",81,84],["4729000000","경상북도","경산시",91,90],["4713000000","경상북도","경주시",100,91],["4783000000","경상북도","고령군",83,87],["4719000000","경상북도","구미시",84,96],["4715000000","경상북도","김천시",80,96],["4728000000","경상북도","문경시",81,106],["4792000000","경상북도","봉화군",90,113],["4725000000","경상북도","상주시",81,102],["4784000000","경상북도","성주군",83,91],["4717000000","경상북도","안동시",91,106],["4777000000","경상북도","영덕군",102,103],["4776000000","경상북도","영양군",97,108],["4721000000","경상북도","영주시",89,111],["4723000000","경상북도","영천시",95,93],["4790000000","경상북도","예천군",86,107],["4794000000","경상북도","울릉군",127,127],["4793000000","경상북도","울진군",102,115],["4773000000","경상북도","의성군",90,101],["4782000000","경상북도","청도군",91,86],["4775000000","경상북도","청송군",96,103],["4785000000","경상북도","칠곡군",85,93],["4711100000","경상북도","포항시 남구",102,94],["4711300000","경상북도","포항시 북구",102,95],["2772000000","대구광역시","군위군",88,99],["2720000000","대구광역시","남구",89,90],["2729000000","대구광역시","달서구",88,90],["2771000000","대구광역시","달성군",86,88],["2714000000","대구광역시","동구",90,91],["2723000000","대구광역시","북구",89,91],["2717000000","대구광역시","서구",88,90],["2726000000","대구광역시","수성구",89,90],["2711000000","대구광역시","중구",89,90],["3023000000","대전광역시","대덕구",68,100],["3011000000","대전광역시","동구",68,100],["3017000000","대전광역시","서구",67,100],["3020000000","대전광역시","유성구",67,101],["3014000000","대전광역시","중구",68,100],["2644000000","부산광역시","강서구",96,76],["2641000000","부산광역시","금정구",98,77],["2671000000","부산광역시","기장군",100,77],["2629000000","부산광역시","남구",98,75],["2617000000","부산광역시","동구",98,75],["2626000000","부산광역시","동래구",98,76],["2623000000","부산광역시","부산진구",97,75],["2632000000","부산광역시","북구",96,76],["2653000000","부산광역시","사상구",96,75],["2638000000","부산광역시","사하구",96,74],["2614000000","부산광역시","서구",97,74],["2650000000","부산광역시","수영구",99,75],["2647000000","부산광역시","연제구",98,76],["2620000000","부산광역시","영도구",98,74],["2611000000","부산광역시","중구",97,74],["2635000000","부산광역시","해운대구",99,75],["1168000000","서울특별시","강남구",61,126],["1174000000","서울특별시","강동구",62,126],["1130500000","서울특별시","강북구",61,128],["1150000000","서울특별시","강서구",58,126],["1162000000","서울특별시","관악구",59,125],["1121500000","서울특별시","광진구",62,126],["1153000000","서울특별시","구로구",58,125],["1154500000","서울특별시","금천구",59,124],["1135000000","서울특별시","노원구",61,129],["1132000000","서울특별시","도봉구",61,129],["1123000000","서울특별시","동대문구",61,127],["1159000000","서울특별시","동작구",59,125],["1144000000","서울특별시","마포구",59,127],["1141000000","서울특별시","서대문구",59,127],["1165000000","서울특별시","서초구",61,125],["1120000000","서울특별시","성동구",61,127],["1129000000","서울특별시","성북구",61,127],["1171000000","서울특별시","송파구",62,126],["1147000000","서울특별시","양천구",58,126],["1156000000","서울특별시","영등포구",58,126],["1117000000","서울특별시","용산구",60,126],["1138000000","서울특별시","은평구",59,127],["1111000000","서울특별시","종로구",60,127],["1114000000","서울특별시","중구",60,127],["1126000000","서울특별시","중랑구",62,128],["3600000000","세종특별자치시","세종특별자치시",66,103],["3114000000","울산광역시","남구",102,84],["3117000000","울산광역시","동구",104,83],["3120000000","울산광역시","북구",103,85],["3171000000","울산광역시","울주군",101,84],["3111000000","울산광역시","중구",102,84],["2871000000","인천광역시","강화군",51,130],["2829000000","인천광역시","검단구",55,127],["2824500000","인천광역시","계양구",56,126],["2820000000","인천광역시","남동구",56,124],["2817700000","인천광역시","미추홀구",54,124],["2823700000","인천광역시","부평구",55,125],["2827500000","인천광역시","서해구",55,126],["2818500000","인천광역시","연수구",55,123],["2815500000","인천광역시","영종구",53,125],["2872000000","인천광역시","옹진군",54,124],["2812500000","인천광역시","제물포구",54,125],["1278000000","전남광주통합특별시","강진군",57,63],["1274000000","전남광주통합특별시","고흥군",66,62],["1272000000","전남광주통합특별시","곡성군",66,77],["1233000000","전남광주통합특별시","광산구",57,74],["1219000000","전남광주통합특별시","광양시",73,70],["1273000000","전남광주통합특별시","구례군",69,75],["1217000000","전남광주통합특별시","나주시",56,71],["1227000000","전남광주통합특별시","남구",59,73],["1271000000","전남광주통합특별시","담양군",61,78],["1221000000","전남광주통합특별시","동구",60,74],["1211000000","전남광주통합특별시","목포시",50,67],["1281000000","전남광주통합특별시","무안군",52,71],["1275000000","전남광주통합특별시","보성군",62,66],["1230000000","전남광주통합특별시","북구",59,75],["1224000000","전남광주통합특별시","서구",59,74],["1215000000","전남광주통합특별시","순천시",70,70],["1287000000","전남광주통합특별시","신안군",50,66],["1213000000","전남광주통합특별시","여수시",73,66],["1283000000","전남광주통합특별시","영광군",52,77],["1280000000","전남광주통합특별시","영암군",56,66],["1285000000","전남광주통합특별시","완도군",57,56],["1284000000","전남광주통합특별시","장성군",57,77],["1277000000","전남광주통합특별시","장흥군",59,64],["1286000000","전남광주통합특별시","진도군",48,59],["1282000000","전남광주통합특별시","함평군",52,72],["1279000000","전남광주통합특별시","해남군",54,61],["1276000000","전남광주통합특별시","화순군",61,72],["5279000000","전북특별자치도","고창군",56,80],["5213000000","전북특별자치도","군산시",56,92],["5221000000","전북특별자치도","김제시",59,88],["5219000000","전북특별자치도","남원시",68,80],["5273000000","전북특별자치도","무주군",72,93],["5280000000","전북특별자치도","부안군",56,87],["5277000000","전북특별자치도","순창군",63,79],["5271000000","전북특별자치도","완주군",63,89],["5214000000","전북특별자치도","익산시",60,91],["5275000000","전북특별자치도","임실군",66,84],["5274000000","전북특별자치도","장수군",70,85],["5211300000","전북특별자치도","전주시 덕진구",63,89],["5211100000","전북특별자치도","전주시 완산구",63,89],["5218000000","전북특별자치도","정읍시",58,83],["5272000000","전북특별자치도","진안군",68,88],["5013000000","제주특별자치도","서귀포시",53,33],["5011000000","제주특별자치도","제주시",53,38],["4425000000","충청남도","계룡시",65,99],["4415000000","충청남도","공주시",63,102],["4471000000","충청남도","금산군",69,95],["4423000000","충청남도","논산시",62,97],["4427000000","충청남도","당진시",54,112],["4418000000","충청남도","보령시",54,100],["4476000000","충청남도","부여군",59,99],["4421000000","충청남도","서산시",51,110],["4477000000","충청남도","서천군",55,94],["4420000000","충청남도","아산시",60,110],["4481000000","충청남도","예산군",58,107],["4413100000","충청남도","천안시 동남구",63,110],["4413300000","충청남도","천안시 서북구",63,112],["4479000000","충청남도","청양군",57,103],["4482500000","충청남도","태안군",48,109],["4480000000","충청남도","홍성군",55,106],["4376000000","충청북도","괴산군",74,111],["4380000000","충청북도","단양군",84,115],["4372000000","충청북도","보은군",73,103],["4374000000","충청북도","영동군",74,97],["4373000000","충청북도","옥천군",71,99],["4377000000","충청북도","음성군",72,113],["4315000000","충청북도","제천시",81,118],["4374500000","충청북도","증평군",71,110],["4375000000","충청북도","진천군",68,111],["4311100000","충청북도","청주시 상당구",69,106],["4311200000","충청북도","청주시 서원구",69,107],["4311400000","충청북도","청주시 청원구",69,107],["4311300000","충청북도","청주시 흥덕구",67,106],["4313000000","충청북도","충주시",76,114]].map(([id, sido, sigungu, nx, ny]) => ({ id, sido, sigungu, nx, ny }));
+const SIDO_SHORT = {
+  서울특별시: '서울', 부산광역시: '부산', 대구광역시: '대구', 인천광역시: '인천', 광주광역시: '광주',
+  전남광주통합특별시: '전남광주', 대전광역시: '대전', 울산광역시: '울산', 세종특별자치시: '세종', 경기도: '경기',
+  강원특별자치도: '강원', 충청북도: '충북', 충청남도: '충남', 전북특별자치도: '전북', 전라남도: '전남',
+  경상북도: '경북', 경상남도: '경남', 제주특별자치도: '제주',
+};
+const sidoShort = (s) => SIDO_SHORT[s] ?? s;
+const strip = (s) => s.replace(/\s+/g, '');
+const stem = (s) => s.replace(/(시|군|구)$/, '');
+
+function searchRegions(query, limit = 8) {
+  const q = strip(query);
+  if (!q) return [];
+  return REGIONS.map((r) => {
+    const name = strip(r.sigungu);
+    let score = -1;
+    if (name === q || stem(name) === q) score = 0;
+    else if (name.startsWith(q)) score = 1;
+    else if (name.includes(q)) score = 2;
+    else if (strip(r.sido + r.sigungu).includes(q) || strip(sidoShort(r.sido) + r.sigungu).includes(q)) score = 3;
+    else if (r.sido.startsWith(q) || sidoShort(r.sido) === q) score = 4;
+    return { r, score };
+  })
+    .filter((x) => x.score >= 0)
+    .sort((a, b) => a.score - b.score || a.r.sigungu.localeCompare(b.r.sigungu, 'ko'))
+    .slice(0, limit)
+    .map((x) => x.r);
+}
+const SAMPLE_REGION = REGIONS.find((r) => r.sigungu === '강릉시');
+
+/* =========================================================
+ * 4. 여행 저장소 (기기 내 localStorage)
+ *    Sample 여행은 날짜를 저장하지 않고 '오늘부터 3일'로 매번 계산한다.
+ * ======================================================= */
+const STORE_KEY = 'weather-travel/trips/v1';
+const SAMPLE_ENTRY = { id: 'sample', isSample: true };
+
+/** localStorage 사용 가능 여부 (사생활 보호 모드·차단 환경에서는 false → 메모리에만 저장) */
+const storage = (() => {
+  try {
+    const k = '__wg_probe__';
+    localStorage.setItem(k, '1'); localStorage.removeItem(k);
+    return { persistent: true };
+  } catch { return { persistent: false, memory: null }; }
+})();
+
+/** 저장된 항목 검증: 형식이 맞지 않는 여행은 목록에서 제외 */
+const isValidTrip = (t) =>
+  t && typeof t.id === 'string' && (t.isSample === true ||
+    (typeof t.name === 'string' && t.region && Number.isFinite(t.region.nx) && Number.isFinite(t.region.ny) &&
+     /^\d{8}$/.test(t.startDate) && /^\d{8}$/.test(t.endDate)));
+
+function readStore() {
+  if (!storage.persistent) return (storage.memory ??= { trips: [SAMPLE_ENTRY] });
+  const raw = localStorage.getItem(STORE_KEY);
+  if (raw === null) {
+    const initial = { trips: [SAMPLE_ENTRY] }; // 최초 실행: Sample 1개
+    localStorage.setItem(STORE_KEY, JSON.stringify(initial));
+    return initial;
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    return { trips: Array.isArray(parsed?.trips) ? parsed.trips.filter(isValidTrip) : [] };
+  } catch {
+    // 데이터가 깨진 경우: 원본을 백업 키에 보관하고 새로 시작 (덮어써서 잃지 않도록)
+    localStorage.setItem(`${STORE_KEY}:corrupt-${Date.now()}`, raw);
+    const fresh = { trips: [SAMPLE_ENTRY] };
+    localStorage.setItem(STORE_KEY, JSON.stringify(fresh));
+    return fresh;
+  }
+}
+/** 저장 실패(용량 초과 등) 시 예외 → 호출한 쪽에서 입력을 유지하고 재시도 안내 */
+function writeStore(store) {
+  if (!storage.persistent) { storage.memory = store; return; }
+  localStorage.setItem(STORE_KEY, JSON.stringify(store));
+}
+function resolveTrip(t) {
+  if (!t.isSample) return t;
+  const today = kstNow().ymd;
+  return { id: t.id, isSample: true, name: '강릉 여행', region: SAMPLE_REGION, startDate: today, endDate: addDays(today, 2) };
+}
+const listTrips = () => readStore().trips.map(resolveTrip);
+const getTrip = (id) => listTrips().find((t) => t.id === id);
+function addTrip(input) {
+  const store = readStore();
+  const trip = { ...input, id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), createdAt: new Date().toISOString() };
+  writeStore({ trips: [...store.trips, trip] }); // 저장 실패 시 예외 → 목록에 추가되지 않음
+  return trip;
+}
+
+/* =========================================================
+ * 5. 기상청 API 연동
+ *    - 현재 기온: 초단기실황 getUltraSrtNcst · T1H
+ *    - 날씨 상태·최고/최저·강수확률: 단기예보 getVilageFcst · SKY·PTY·TMX·TMN·POP (+ 시각별 기온 TMP)
+ *    - 지역 → nx·ny: 기상청 격자·위경도 표(2607)의 시·군·구 격자값 (REGIONS)
+ *    - 응답에 없는 값은 null → 화면에 '예보 미제공'. 임의 값을 만들지 않는다.
+ *    - 인증키는 로컬 서버(server.mjs)가 .env에서 읽어 붙인다. 브라우저에는 키가 없다.
+ * ======================================================= */
+const KMA_PROXY = '/api/kma';
+
+/* SKY + PTY → 날씨 상태 매핑표
+ * | PTY | SKY | 상태     | 아이콘 |
+ * |  1  |  -  | 비       | rain    |
+ * |  2  |  -  | 비/눈    | sleet   |
+ * |  3  |  -  | 눈       | snow    |
+ * |  4  |  -  | 소나기   | shower  |
+ * |  0  |  1  | 맑음     | clear   |
+ * |  0  |  3  | 구름많음 | partlyCloudy |
+ * |  0  |  4  | 흐림     | cloudy  |
+ * | 그 외·값 없음 | 예보 미제공 (점선 아이콘) |
+ * 강수(PTY≠0)가 있으면 강수 상태를 우선한다. PTY가 없으면 하늘 상태만으로 단정하지 않는다. */
+const CONDITION_LABEL = { clear: '맑음', partlyCloudy: '구름많음', cloudy: '흐림', rain: '비', sleet: '비/눈', snow: '눈', shower: '소나기' };
+function resolveCondition(sky, pty) {
+  if (pty !== null && pty !== 0) return { 1: 'rain', 2: 'sleet', 3: 'snow', 4: 'shower' }[pty] ?? null;
+  if (pty === 0 && sky !== null) return { 1: 'clear', 3: 'partlyCloudy', 4: 'cloudy' }[sky] ?? null;
+  return null;
+}
+
+/** 숫자 변환. 빈 값·숫자 아님·기상청 결측값(±900 이상)은 null. 0은 유효한 값. */
+function parseNum(raw) {
+  if (raw === undefined || raw === null || String(raw).trim() === '') return null;
+  const n = Number(String(raw).trim());
+  return Number.isFinite(n) && n < 900 && n > -900 ? n : null;
+}
+
+/** 단기예보: 02·05·08·11·14·17·20·23시 발표, 발표 10분 후부터 조회 */
+function vilageBase(now = new Date()) {
+  const { ymd, hour, minute } = kstNow(now);
+  const mins = hour * 60 + minute;
+  for (const h of [23, 20, 17, 14, 11, 8, 5, 2]) if (mins >= h * 60 + 10) return { baseDate: ymd, baseTime: hhmm(h) };
+  return { baseDate: addDays(ymd, -1), baseTime: '2300' };
+}
+/** 초단기실황: 매시 정시 자료, 40분 이후 조회 가능 → 그 전이면 한 시간 전 자료 */
+function ultraBase(now = new Date()) {
+  const { ymd, hour, minute } = kstNow(now);
+  if (minute >= 40) return { baseDate: ymd, baseTime: hhmm(hour) };
+  return hour === 0 ? { baseDate: addDays(ymd, -1), baseTime: '2300' } : { baseDate: ymd, baseTime: hhmm(hour - 1) };
+}
+
+class KmaError extends Error {}
+
+/** 프록시를 통해 호출하고 모든 페이지를 받은 뒤 item 배열을 돌려준다. */
+async function kmaFetch(op, params) {
+  const all = [];
+  for (let page = 1; page < 20; page++) {
+    const qs = new URLSearchParams({ ...params, pageNo: page, numOfRows: 1000, dataType: 'JSON' });
+    let res;
+    try { res = await fetch(`${KMA_PROXY}/${op}?${qs}`, { cache: 'no-store' }); }
+    catch { throw new KmaError('네트워크에 연결할 수 없어요.'); }
+    const text = await res.text();
+    let json = null;
+    try { json = JSON.parse(text); } catch { /* 인증 오류 등은 XML로 온다 */ }
+    if (!json) {
+      const msg = /<returnAuthMsg>([^<]+)</.exec(text)?.[1] ?? /<resultMsg>([^<]+)</.exec(text)?.[1];
+      throw new KmaError(msg ? `API 오류: ${msg}` : res.ok ? '응답을 해석할 수 없어요.' : `기상청 서버 응답 오류 (${res.status}). 잠시 후 다시 시도해 주세요.`);
+    }
+    if (json.error) throw new KmaError(json.error); // 프록시 오류 (인증키 없음 등)
+    const header = json.response?.header, body = json.response?.body;
+    if (header?.resultCode === '03') return all; // NO_DATA
+    if (header?.resultCode !== '00') throw new KmaError(`API 오류: ${header?.resultMsg ?? '알 수 없음'}`);
+    const raw = body?.items?.item;
+    const items = Array.isArray(raw) ? raw : raw ? [raw] : [];
+    all.push(...items);
+    const total = Number(body?.totalCount ?? all.length);
+    if (all.length >= total || items.length === 0) {
+      if (all.length < total) throw new KmaError(`일부 데이터만 받았어요. (${all.length}/${total})`);
+      return all;
+    }
+  }
+  throw new KmaError('응답 페이지가 너무 많아요.');
+}
+
+const emptyHour = (h) => ({ time: hhmm(h), tmp: null, sky: null, pty: null, pop: null, condition: null });
+
+/** 단기예보 원본 → 여행 기간 날짜별 { date, hasForecast, noon, tmn, tmx, hourly[24] } */
+function buildDays(items, trip, base) {
+  const byDate = new Map();
+  const get = (d) => { if (!byDate.has(d)) byDate.set(d, { hours: new Map(), tmn: null, tmx: null }); return byDate.get(d); };
+  for (const it of items) {
+    if (Number(it.nx) !== trip.region.nx || Number(it.ny) !== trip.region.ny) continue;
+    if (it.baseDate !== base.baseDate || it.baseTime !== base.baseTime) continue;
+    const d = get(it.fcstDate);
+    const v = parseNum(it.fcstValue);
+    if (it.category === 'TMN') { d.tmn = v; continue; }
+    if (it.category === 'TMX') { d.tmx = v; continue; }
+    const key = { TMP: 'tmp', SKY: 'sky', PTY: 'pty', POP: 'pop' }[it.category];
+    if (!key) continue;
+    if (!d.hours.has(it.fcstTime)) d.hours.set(it.fcstTime, { time: it.fcstTime, tmp: null, sky: null, pty: null, pop: null, condition: null });
+    d.hours.get(it.fcstTime)[key] = v;
+  }
+  return dateRange(trip.startDate, trip.endDate).map((date) => {
+    const d = byDate.get(date);
+    // 시간대별 상세는 00~23시 24칸. 받지 못한 시각은 빈 칸(예보 미제공)
+    const hourly = Array.from({ length: 24 }, (_, h) => {
+      const x = d?.hours.get(hhmm(h));
+      return x ? { ...x, condition: resolveCondition(x.sky, x.pty) } : emptyHour(h);
+    });
+    const noon = hourly[12];
+    return {
+      date,
+      hasForecast: !!d,
+      noon: isEmptyHour(noon) ? null : noon,
+      tmn: d?.tmn ?? null, // 최고·최저는 TMN·TMX만 사용 (시간대 기온으로 대체하지 않음)
+      tmx: d?.tmx ?? null,
+      hourly,
+    };
+  });
+}
+
+/** 여행 날씨 조회: 화면을 열 때마다 새로 호출 (캐시 없음) */
+async function loadTripWeather(trip) {
+  const now = new Date();
+  const base = vilageBase(now);
+  const { nx, ny } = trip.region;
+  const today = kstNow(now).ymd;
+  const inTrip = today >= trip.startDate && today <= trip.endDate;
+
+  const vilageP = kmaFetch('getVilageFcst', { base_date: base.baseDate, base_time: base.baseTime, nx, ny });
+  // 현재 기온은 여행 기간에 오늘이 포함될 때만 의미가 있다
+  const currentP = inTrip
+    ? (async () => {
+        const ub = ultraBase(now);
+        const items = await kmaFetch('getUltraSrtNcst', { base_date: ub.baseDate, base_time: ub.baseTime, nx, ny });
+        const t1h = items.find((i) => i.category === 'T1H');
+        return { t1h: parseNum(t1h?.obsrValue), ...ub };
+      })().catch((e) => ({ error: e.message }))
+    : Promise.resolve(null);
+
+  const [vilage, current] = await Promise.all([vilageP, currentP]);
+  return { base, fetchedAt: now, days: buildDays(vilage, trip, base), current };
+}
+
+/* =========================================================
+ * 6. 표시 형식
+ * ======================================================= */
+const NA = '예보 미제공';
+const fmtTemp = (v) => (v === null || v === undefined ? NA : `${Math.round(v)}℃`);
+const fmtPop = (v) => (v === null || v === undefined ? NA : `${v}%`);
+const isEmptyHour = (h) => h.tmp === null && h.sky === null && h.pty === null && h.pop === null;
+
+/* =========================================================
+ * 7. 공통: h(tag, props, ...children) → Element
+ * ======================================================= */
+function h(tag, props = {}, ...children) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === 'class') el.className = v;
+    else if (k === 'html') el.innerHTML = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2).toLowerCase(), v);
+    else if (v === true) el.setAttribute(k, '');
+    else if (v !== false && v !== null && v !== undefined) el.setAttribute(k, v);
+  }
+  for (const c of children.flat()) if (c !== null && c !== false && c !== undefined) el.append(c);
+  return el;
+}
+
+/* =========================================================
+ * 8. 컴포넌트
+ * ======================================================= */
+
+/** WeatherIcon — 날씨 상태별 SVG (null = 예보 미제공) */
+function WeatherIcon(condition, size = 32) {
+  const CLOUD = 'M19 46 H46 A9.5 9.5 0 0 0 47.6 27.1 A13.5 13.5 0 0 0 22.4 29.4 A8.4 8.4 0 0 0 19 46 Z';
+  const sun = (cx, cy, r) => {
+    let rays = '';
+    for (let i = 0; i < 8; i++) {
+      const a = (Math.PI / 4) * i;
+      rays += `<line x1="${cx + Math.cos(a) * (r + 4)}" y1="${cy + Math.sin(a) * (r + 4)}" x2="${cx + Math.cos(a) * (r + 9)}" y2="${cy + Math.sin(a) * (r + 9)}" stroke="#FFC54D" stroke-width="3" stroke-linecap="round"/>`;
+    }
+    return `${rays}<circle cx="${cx}" cy="${cy}" r="${r}" fill="#FFB020"/>`;
+  };
+  const cloud = (fill, dy = 0) => `<path d="${CLOUD}" fill="${fill}" transform="translate(0 ${dy})"/>`;
+  const drop = (x, y) => `<line x1="${x}" y1="${y}" x2="${x - 3}" y2="${y + 8}" stroke="#3B8BEB" stroke-width="3.2" stroke-linecap="round"/>`;
+  const flake = (x, y, s = 4) =>
+    `<g stroke="#6FB3EE" stroke-width="2.2" stroke-linecap="round"><line x1="${x - s}" y1="${y}" x2="${x + s}" y2="${y}"/><line x1="${x - s / 2}" y1="${y - s * .87}" x2="${x + s / 2}" y2="${y + s * .87}"/><line x1="${x - s / 2}" y1="${y + s * .87}" x2="${x + s / 2}" y2="${y - s * .87}"/></g>`;
+  const glyph = {
+    clear: sun(32, 32, 12),
+    partlyCloudy: sun(24, 24, 9) + cloud('#D5DEE8', 4),
+    cloudy: `<path d="${CLOUD}" fill="#B4C0CE" transform="translate(-6 -7) scale(0.85)"/>` + cloud('#D5DEE8', 3),
+    rain: cloud('#8D9AAA', -8) + drop(24, 44) + drop(33, 44) + drop(42, 44),
+    shower: sun(22, 18, 7) + cloud('#B4C0CE', -6) + drop(28, 46) + drop(39, 46),
+    snow: cloud('#B4C0CE', -8) + flake(23, 48) + flake(33, 53) + flake(43, 48),
+    sleet: cloud('#8D9AAA', -8) + drop(25, 44) + flake(34, 51) + drop(44, 44),
+  }[condition] ?? `<circle cx="32" cy="32" r="17" fill="none" stroke="#C3CBD5" stroke-width="2.5" stroke-dasharray="4 4"/><text x="32" y="39" font-size="20" font-weight="700" fill="#AEB8C4" text-anchor="middle">?</text>`;
+  return h('span', {
+    role: 'img', 'aria-label': condition ? CONDITION_LABEL[condition] : NA,
+    html: `<svg width="${size}" height="${size}" viewBox="0 0 64 64" style="display:block">${glyph}</svg>`,
+  });
+}
+
+/** UiIcon — 뒤로·달력 이동·닫기·안내 (Figma WeatherGo/Icon/*) */
+const UI_ICON = {
+  back: '<path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
+  left: '<path d="m14 17-5-5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+  right: '<path d="m10 17 5-5-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+  close: '<path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  info: '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M12 11v5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="8" r="1" fill="currentColor"/>',
+};
+const uiIcon = (name, size = 24) =>
+  h('span', { 'aria-hidden': 'true', style: 'display:flex', html: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none">${UI_ICON[name]}</svg>` });
+
+/** TripCard — 홈 목록의 여행 카드 (이름·여행지·기간) */
+function TripCard(trip, { onClick }) {
+  return h('button', { class: 'trip-card', onClick: () => onClick(trip) },
+    h('div', { class: 'trip-card__body' },
+      h('div', { class: 'trip-card__name-row' },
+        h('span', { class: 'trip-card__name t-title-m' }, trip.name),
+        trip.isSample && h('span', { class: 'badge t-caption-strong' }, '샘플')),
+      h('span', { class: 't-body-s c-sub' }, `${sidoShort(trip.region.sido)} ${trip.region.sigungu}`)),
+    h('span', { class: 'trip-card__period t-body-s' }, `${mdLabel(trip.startDate)} ~ ${mdLabel(trip.endDate)}`),
+  );
+}
+
+/**
+ * RegionPicker — 시·군·구 검색 & 선택
+ * 입력칸은 한 번만 만들고 결과 목록만 다시 그린다.
+ * (입력칸을 다시 만들면 한글 조합 입력이 끊겨 검색이 되지 않는다)
+ * 반환: { el, getRegion(), reset() }
+ */
+function RegionPicker({ onChange }) {
+  let region = null;
+  const el = h('div', {});
+  const input = h('input', {
+    id: 'region', class: 'input', type: 'search', placeholder: '여행지를 검색하세요. (시·군·구)',
+    autocomplete: 'off', autocorrect: 'off', spellcheck: 'false',
+  });
+  const results = h('div', {});
+
+  function renderResults() {
+    const q = input.value;
+    if (!q.trim()) return results.replaceChildren();
+    const found = searchRegions(q);
+    results.replaceChildren(h('div', { class: 'results' },
+      found.length === 0
+        ? h('p', { class: 'no-result t-body-s' }, '검색 결과가 없어요.')
+        : found.map((r) => h('button', { class: 'result', type: 'button', onClick: () => pick(r) },
+            h('div', { class: 't-label' }, r.sigungu),
+            h('div', { class: 't-caption c-sub' }, `${sidoShort(r.sido)} · ${r.sido}`)))));
+  }
+  // input: 조합 중인 글자까지 포함해 매번 발생 / compositionend: 조합 완료 시 한 번 더 보정
+  input.addEventListener('input', renderResults);
+  input.addEventListener('compositionend', renderResults);
+
+  function pick(r) {
+    region = r;
+    el.replaceChildren(h('div', { class: 'picked' },
+      h('span', { class: 'picked__name' }, h('span', { class: 't-label' }, r.sigungu), h('span', { class: 't-caption c-sub' }, r.sido)),
+      h('button', { class: 'link-btn t-label', type: 'button', onClick: reset }, '변경')));
+    onChange?.(region);
+  }
+  function reset() {
+    region = null;
+    input.value = '';
+    results.replaceChildren();
+    el.replaceChildren(input, results);
+    input.focus();
+    onChange?.(region);
+  }
+  el.replaceChildren(input, results);
+  return { el, getRegion: () => region };
+}
+
+/**
+ * DateRangePicker — 가는 날·오는 날 입력 + 펼침 달력
+ * 기본은 달력을 숨기고, 날짜 입력칸을 누르면 그 칸을 고르는 달력이 펼쳐진다.
+ *  - 가는 날 선택 → 자동으로 오는 날 선택으로 넘어감
+ *  - 오는 날 선택 → 달력 닫힘
+ * 지난 날짜만 막고, 이후 날짜는 예보 제공 여부와 관계없이 모두 선택 가능. 당일치기 불가.
+ * 반환: { el, getRange() }
+ */
+function DateRangePicker({ onChange }) {
+  const today = kstNow().ymd;
+  let start = null, end = null;
+  let mode = null;                   // null(닫힘) | 'start' | 'end'
+  let month = today.slice(0, 6);     // 'YYYYMM'
+  const el = h('div', {});
+
+  const monthAdd = (ym, n) => {
+    const d = new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(4, 6) - 1 + n, 1));
+    return `${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+  };
+
+  function open(next) {
+    if (mode === next) { mode = null; return render(); }  // 같은 칸을 다시 누르면 닫기
+    if (next === 'end' && !start) next = 'start';           // 가는 날부터
+    mode = next;
+    month = ((next === 'end' ? end ?? start : start) ?? today).slice(0, 6);
+    render();
+  }
+
+  function pick(d) {
+    if (mode === 'start' || !start || d <= start) {
+      start = d;
+      if (end && end <= start) end = null;
+      mode = end ? null : 'end';   // 오는 날이 없으면 이어서 선택
+    } else {
+      end = d;
+      mode = null;
+    }
+    render();
+    onChange?.({ start, end });
+  }
+
+  function field(key, label, value) {
+    const active = mode === key;
+    return h('button', {
+      type: 'button', class: `date-box${active ? ' is-active' : ''}`,
+      'aria-expanded': String(active), 'aria-haspopup': 'dialog', onClick: () => open(key),
+    },
+      h('span', { class: 't-caption c-sub' }, label),
+      h('span', { class: `date-box__value t-label${value ? '' : ' is-empty'}` }, value ? dayLabel(value) : '날짜 선택'));
+  }
+
+  function calendar() {
+    const y = +month.slice(0, 4), m = +month.slice(4, 6);
+    const lastDay = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    const lead = ymdToUtc(`${month}01`).getUTCDay();
+    const forecastEnd = addDays(today, MAX_DAYS_AHEAD);
+
+    const cells = [];
+    for (let i = 0; i < lead; i++) cells.push(h('span', { class: 'cal__blank' }));
+    for (let d = 1; d <= lastDay; d++) {
+      const ymd = toYmd(y, m, d);
+      const past = ymd < today;
+      const edge = ymd === start || ymd === end;
+      const inRange = start && end && ymd > start && ymd < end;
+      const cls = ['cal__day', past && 'is-past', edge && 'is-edge', inRange && 'in-range',
+        ymd === today && 'is-today', ymd > forecastEnd && 'no-forecast'].filter(Boolean).join(' ');
+      cells.push(h('button', {
+        type: 'button', class: cls, disabled: past, 'aria-label': dayLabel(ymd), 'aria-pressed': String(edge || !!inRange),
+        onClick: () => pick(ymd),
+      }, h('span', { class: 't-body' }, String(d))));
+    }
+
+    return h('div', { class: 'cal', role: 'dialog', 'aria-label': mode === 'start' ? '가는 날 선택' : '오는 날 선택' },
+      h('p', { class: 'cal__guide t-caption-strong' }, mode === 'start' ? '가는 날을 선택하세요' : '오는 날을 선택하세요'),
+      h('div', { class: 'cal__head' },
+        h('button', { type: 'button', class: 'cal__nav', 'aria-label': '이전 달', disabled: month <= today.slice(0, 6), onClick: () => { month = monthAdd(month, -1); render(); } }, uiIcon('left', 20)),
+        h('span', { class: 't-label' }, `${y}년 ${m}월`),
+        h('button', { type: 'button', class: 'cal__nav', 'aria-label': '다음 달', onClick: () => { month = monthAdd(month, 1); render(); } }, uiIcon('right', 20))),
+      h('div', { class: 'cal__grid' },
+        WEEKDAYS.map((w, i) => h('span', { class: `cal__week t-caption${i === 0 ? ' is-sun' : ''}` }, w)),
+        cells),
+      h('p', { class: 'hint t-caption' }, uiIcon('info', 16), h('span', {}, '날씨 예보는 당일부터 최대 4일 뒤까지만 제공돼요.', h('br'), `이후 날짜는 '예보 미제공'으로 표시돼요.`)));
+  }
+
+  function render() {
+    const cal = mode ? calendar() : null;
+    el.replaceChildren(
+      h('div', { class: 'date-boxes' }, field('start', '가는 날', start), field('end', '오는 날', end)),
+      ...(cal ? [cal] : []));
+    if (cal) requestAnimationFrame(() => cal.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+  }
+  render();
+  return { el, getRange: () => ({ start, end }) };
+}
+
+/** Header — 상세 화면 상단 (뒤로 + 여행 이름 + 기간) */
+function Header(trip) {
+  return h('header', { class: 'header' },
+    h('button', { class: 'header__back', 'aria-label': '뒤로', onClick: () => navigate('#/') }, uiIcon('back', 28)),
+    h('h1', { class: 't-label' }, trip.name),
+    h('p', { class: 't-caption c-sub' }, `${mdLabel(trip.startDate)} ~ ${mdLabel(trip.endDate)}`));
+}
+
+/**
+ * Hero — 상단 대표 영역
+ *  - 오늘이 여행 기간에 포함: 현재 기온 = 초단기실황 T1H, 상태 = 단기예보 지금 이후 가장 가까운 시각의 SKY+PTY
+ *  - 그 외: 여행 첫날 낮 12시 단기예보 (TMP, SKY+PTY)
+ *  - 값이 없으면 '—' / '예보 미제공'
+ */
+function Hero(trip, state) {
+  const now = kstNow();
+  const inTrip = now.ymd >= trip.startDate && now.ymd <= trip.endDate;
+  const date = inTrip ? now.ymd : trip.startDate;
+  const region = h('p', { class: 't-heading' }, `${sidoShort(trip.region.sido)} ${trip.region.sigungu}`);
+  const dateEl = h('p', { class: 't-title-s' }, dayLabel(date));
+
+  if (state.status === 'loading') {
+    return h('section', { class: 'hero', 'aria-busy': 'true', 'aria-label': '날씨를 불러오는 중' }, region,
+      h('div', { class: 'skel skel--circle', style: 'width:120px;height:120px;margin:15px 0' }),
+      dateEl,
+      h('div', { class: 'skel', style: 'width:112px;height:48px;margin:4px 0' }),
+      h('div', { class: 'skel', style: 'width:150px;height:18px' }));
+  }
+  if (state.status !== 'ok') {
+    return h('section', { class: 'hero' }, region, WeatherIcon(null, 150), dateEl,
+      h('p', { class: 't-display' }, '—'),
+      h('p', { class: 't-body c-sub' }, '조회 실패'));
+  }
+
+  const { days, current } = state.weather;
+  let temp, condition, caption;
+  if (inTrip) {
+    const today = days.find((d) => d.date === now.ymd);
+    const next = today?.hourly.find((x) => x.time >= hhmm(now.hour) && (x.sky !== null || x.pty !== null)) ?? null;
+    condition = next?.condition ?? null;
+    temp = current?.t1h ?? null;
+    const tempNote = current?.error ? `현재 기온 조회 실패` : temp === null ? '현재 기온 미제공' : `현재 기온 · ${+current.baseTime.slice(0, 2)}시 관측`;
+    caption = `${condition ? CONDITION_LABEL[condition] : '상태 미제공'} · ${tempNote}`;
+  } else {
+    const noon = days.find((d) => d.date === trip.startDate)?.noon ?? null;
+    condition = noon?.condition ?? null;
+    temp = noon?.tmp ?? null;
+    caption = noon ? `${condition ? CONDITION_LABEL[condition] : '상태 미제공'} · 낮 12시 예보` : '낮 12시 예보 미제공';
+  }
+  return h('section', { class: 'hero' }, region, WeatherIcon(condition, 150), dateEl,
+    h('p', { class: 't-display' }, temp === null ? '—' : fmtTemp(temp)),
+    h('p', { class: 't-body c-sub' }, caption));
+}
+/** HourSlot — 시간대별 한 칸 (Figma WeatherGo/Hour Slot) */
+function HourSlot(hour, { isNow = false, isPast = false } = {}) {
+  const label = h('span', { class: 't-caption c-sub' }, `${+hour.time.slice(0, 2)}시`);
+  const cls = ['slot', isNow && 'is-now', isPast && 'is-past'].filter(Boolean).join(' ');
+  if (isEmptyHour(hour)) return h('div', { class: cls }, label, h('span', { class: 't-caption c-muted', html: '예보<br>미제공' }));
+  return h('div', { class: cls },
+    label,
+    WeatherIcon(hour.condition, 32),
+    h('span', { class: 't-label' }, hour.tmp === null ? '-' : `${Math.round(hour.tmp)}℃`),
+    h('span', { class: 't-caption c-info' }, hour.pop === null ? '-' : `${hour.pop}%`));
+}
+
+/** DayCard — 날짜별 카드 (아코디언, Figma WeatherGo/Day Card) */
+function DayCard({ day, isToday = false, nowHour = 0, open = false, onToggle }) {
+  const noon = day.noon;
+  let right;
+  if (!day.hasForecast) right = h('span', { class: 't-body-s c-muted' }, NA);
+  else if (!noon) right = h('div', { class: 'day-card__right' }, WeatherIcon(null, 36),
+    h('div', { class: 'day-card__nums' }, h('span', { class: 't-caption c-muted' }, '낮 12시'), h('span', { class: 't-caption c-muted' }, NA)));
+  else right = h('div', { class: 'day-card__right' }, WeatherIcon(noon.condition, 36),
+    h('div', { class: 'day-card__nums' },
+      h('span', { class: 't-title-m' }, fmtTemp(noon.tmp)),
+      h('span', { class: 't-caption c-info' }, `강수 ${fmtPop(noon.pop)}`)));
+
+  const slots = h('div', { class: 'slots' },
+    day.hourly.map((hr, i) => HourSlot(hr, { isNow: isToday && i === nowHour, isPast: isToday && i < nowHour })));
+  const { md, wd } = dayParts(day.date);
+
+  const card = h('article', { class: `day-card${open ? ' is-open' : ''}` },
+    h('button', { class: 'day-card__main', 'aria-expanded': String(open), disabled: !day.hasForecast, onClick: () => onToggle?.(day.date) },
+      h('div', {},
+        h('div', { class: 'day-card__date' }, h('span', { class: 't-heading' }, md), h('span', { class: 't-heading c-sub' }, wd)),
+        isToday && h('span', { class: 't-caption-strong c-accent' }, '오늘')),
+      right),
+    h('div', { class: 'day-card__detail' },
+      h('div', { class: 'day-card__detail-inner' },
+        h('div', { class: 'day-card__detail-body' },
+          h('p', { class: 't-body' },
+            `낮 12시 ${noon?.condition ? CONDITION_LABEL[noon.condition] : '미제공'} · ` +
+            `최저 ${day.tmn === null ? '미제공' : fmtTemp(day.tmn)} / 최고 ${day.tmx === null ? '미제공' : fmtTemp(day.tmx)}`),
+          slots))));
+
+  if (open) {
+    requestAnimationFrame(() => {
+      const first = Math.max(0, day.hourly.findIndex((x) => !isEmptyHour(x)));
+      slots.scrollLeft = Math.max(0, (isToday ? nowHour : first) - 1) * 56;
+    });
+  }
+  return card;
+}
+
+/* =========================================================
+ * 9. 화면
+ * ======================================================= */
+const $app = document.getElementById('app');
+const $modal = document.getElementById('modal-root');
+
+/** SCR-MAIN-01 홈 */
+function HomePage() {
+  let trips = [];
+  let loadError = false;
+  try { trips = listTrips(); } catch { loadError = true; }
+  return [
+    h('header', { class: 'home-head' }, h('h1', { class: 't-title-l' }, '홈')),
+    h('h2', { class: 'home-section t-heading' }, '나의 여행'),
+    !storage.persistent && h('p', { class: 'notice-bar t-caption' }, '이 브라우저에서는 저장소를 쓸 수 없어 새로고침하면 추가한 여행이 사라져요. (사생활 보호 모드 등)'),
+    loadError && h('div', { class: 'fail-box' },
+      h('p', { class: 't-label' }, '저장된 여행을 불러오지 못했어요'),
+      h('button', { class: 'pill-btn', onClick: route }, '다시 시도')),
+    !loadError && trips.length === 0 && h('p', { class: 'empty t-body' }, '아직 저장한 여행이 없어요.'),
+    h('div', { class: 'trip-list' }, trips.map((t) => TripCard(t, { onClick: (trip) => navigate(`#/trip/${trip.id}`) }))),
+    h('button', { class: 'pill-btn', onClick: () => navigate('#/add') }, '+ 여행 추가'),
+  ];
+}
+
+/**
+ * MOD-MAIN-01 여행 추가
+ * 화면 뼈대와 입력칸은 한 번만 만들고, 오류 문구만 갱신한다.
+ */
+function openAddModal() {
+  let submitted = false;
+  const close = () => navigate('#/');
+
+  const nameInput = h('input', { id: 'trip-name', class: 'input', placeholder: '여행 이름을 입력하세요.', maxlength: '30', autocomplete: 'off' });
+  const regionPicker = RegionPicker({ onChange: () => submitted && showErrors() });
+  const datePicker = DateRangePicker({ onChange: () => submitted && showErrors() });
+  nameInput.addEventListener('input', () => submitted && showErrors());
+
+  const nameError = h('p', { class: 'section__error t-caption', role: 'alert' });
+  const regionError = h('p', { class: 'section__error t-caption', role: 'alert' });
+  const dateError = h('p', { class: 'section__error t-caption', role: 'alert' });
+  const saveError = h('p', { class: 'save-error t-body-s', role: 'alert' });
+
+  const draft = () => {
+    const { start, end } = datePicker.getRange();
+    return { name: nameInput.value, region: regionPicker.getRegion(), startDate: start, endDate: end };
+  };
+
+  function showErrors() {
+    const e = validateDraft(draft());
+    for (const [el, msg] of [[nameError, e.name], [regionError, e.region], [dateError, e.date]]) {
+      el.textContent = msg ?? '';
+      el.hidden = !msg;
+    }
+    return e;
+  }
+
+  function save() {
+    submitted = true;
+    saveError.hidden = true;
+    if (Object.keys(showErrors()).length) return;
+    const d = draft();
+    try {
+      addTrip({ name: d.name.trim(), region: d.region, startDate: d.startDate, endDate: d.endDate });
+      close();
+    } catch {
+      saveError.textContent = '저장에 실패했어요. 다시 시도해 주세요.'; // 입력 내용 유지
+      saveError.hidden = false;
+    }
+  }
+
+  for (const el of [nameError, regionError, dateError, saveError]) el.hidden = true;
+
+  const section = (label, forId, body, error) =>
+    h('section', { class: 'section' }, h('label', { class: 't-label', for: forId }, label), body, error);
+
+  const sheet = h('div', { class: 'sheet', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'add-title' },
+    h('div', { class: 'sheet__head' },
+      h('h2', { class: 't-title-s', id: 'add-title' }, '여행 추가'),
+      h('button', { class: 'sheet__close', 'aria-label': '저장하지 않고 닫기', onClick: close }, uiIcon('close'))),
+    section('어떤 여행인가요?', 'trip-name', nameInput, nameError),
+    section('어디로 떠나시나요?', 'region', regionPicker.el, regionError),
+    section('언제 가나요?', null, datePicker.el, dateError),
+    saveError,
+    h('button', { class: 'pill-btn', onClick: save }, '저장'));
+
+  $modal.replaceChildren(h('div', { class: 'modal', onClick: (e) => e.target === e.currentTarget && close() }, sheet));
+  nameInput.focus();
+}
+
+/** SCR-MAIN-02 기간별 날씨 — 열 때마다 기상청 API를 다시 조회 */
+function TripPage(trip) {
+  const now = kstNow();
+  const hero = h('div', {});
+  const list = h('div', { class: 'day-list' });
+  const notice = h('div', {});
+  const meta = h('div', {});
+  let state = { status: 'loading' };
+  let openDate = null;
+  const myHash = location.hash;
+
+  const paint = () => {
+    hero.replaceChildren(Hero(trip, state));
+    if (state.status === 'ok') {
+      list.replaceChildren(...state.weather.days.map((day) => DayCard({
+        day, isToday: day.date === now.ymd, nowHour: now.hour, open: openDate === day.date,
+        onToggle: (d) => { openDate = openDate === d ? null : d; paint(); },
+      })));
+      const { base, fetchedAt, days } = state.weather;
+      const k = kstNow(fetchedAt);
+      meta.replaceChildren(...[
+        h('p', { class: 'meta t-caption' },
+          `단기예보 ${base.baseDate.slice(4, 6)}.${base.baseDate.slice(6)} ${base.baseTime.slice(0, 2)}:00 발표 · ${String(k.hour).padStart(2, '0')}:${String(k.minute).padStart(2, '0')} 조회`),
+        days.some((d) => !d.hasForecast) && h('p', { class: 'meta t-caption' }, '단기예보는 당일부터 최대 4일 뒤까지만 제공돼요.'),
+      ].filter(Boolean));
+      notice.replaceChildren();
+      list.setAttribute('aria-busy', 'false');
+    } else {
+      // 로딩·실패 중에도 여행 날짜는 모두 보여준다
+      const loading = state.status === 'loading';
+      list.setAttribute('aria-busy', String(loading));
+      list.replaceChildren(...dateRange(trip.startDate, trip.endDate).map((date) => {
+        const { md, wd } = dayParts(date);
+        const right = loading
+          ? h('div', { class: 'day-card__right' },
+              h('div', { class: 'skel skel--circle', style: 'width:36px;height:36px' }),
+              h('div', { class: 'day-card__nums' },
+                h('div', { class: 'skel', style: 'width:52px;height:24px' }),
+                h('div', { class: 'skel', style: 'width:56px;height:14px' })))
+          : h('span', { class: 't-body-s c-muted' }, '조회 실패');
+        return h('article', { class: 'day-card' }, h('div', { class: 'day-card__main' },
+          h('div', { class: 'day-card__date' }, h('span', { class: 't-heading' }, md), h('span', { class: 't-heading c-sub' }, wd)),
+          right));
+      }));
+      meta.replaceChildren();
+      notice.replaceChildren(state.status === 'failed'
+        ? h('div', { class: 'fail-box' },
+            h('p', { class: 't-label' }, '날씨 조회에 실패했어요'),
+            h('p', { class: 't-caption c-sub' }, state.message),
+            h('button', { class: 'pill-btn', onClick: load }, '다시 시도'))
+        : '');
+    }
+  };
+
+  let inFlight = false;
+  async function load() {
+    if (inFlight) return;
+    inFlight = true;
+    state = { status: 'loading' }; paint();
+    try { await fetchAndSet(); } finally { inFlight = false; }
+    paint();
+    if (state.status === 'failed') notice.querySelector('button')?.focus();
+  }
+  async function fetchAndSet() {
+    if (location.protocol === 'file:') {
+      state = { status: 'failed', message: '기상청 API는 로컬 서버로 열어야 동작해요. 터미널에서 node server.mjs 실행 후 http://localhost:5173 으로 접속하세요.' };
+      return;
+    }
+    try {
+      const weather = await loadTripWeather(trip);
+      if (location.hash !== myHash) return; // 다른 화면으로 이동함
+      state = { status: 'ok', weather };
+    } catch (e) {
+      if (location.hash !== myHash) return;
+      state = { status: 'failed', message: e instanceof KmaError ? e.message : '알 수 없는 오류가 발생했어요.' };
+    }
+  }
+
+  load();
+  return [
+    Header(trip),
+    hero,
+    notice,
+    h('div', { class: 'list-head' },
+      h('h2', { class: 't-heading' }, '날짜별 날씨'),
+      h('span', { class: 't-caption c-sub' }, '낮 12시 기준')),
+    list,
+    meta,
+  ];
+}
+
+/* =========================================================
+ * 10. 라우터 (#/ · #/add · #/trip/:id)
+ * ======================================================= */
+function navigate(hash) {
+  if (location.hash === hash) route(); else location.hash = hash;
+}
+function route() {
+  const hash = location.hash || '#/';
+  const tripMatch = hash.match(/^#\/trip\/(.+)$/);
+  $modal.replaceChildren();
+  if (tripMatch) {
+    const trip = getTrip(decodeURIComponent(tripMatch[1]));
+    $app.replaceChildren(...(trip
+      ? TripPage(trip)
+      : [h('p', { class: 'empty' }, '여행 정보를 찾을 수 없어요.'), h('button', { class: 'pill-btn', onClick: () => navigate('#/') }, '홈으로')]).filter(Boolean));
+    window.scrollTo(0, 0);
+    return;
+  }
+  $app.replaceChildren(...HomePage().filter(Boolean));
+  if (hash === '#/add') openAddModal();
+}
+/** 00 스플래시 — 처음 열 때 잠깐 표시. 로고는 같은 폴더의 weathergo-logo.png (없으면 글자 로고) */
+function showSplash() {
+  const word = h('p', { class: 'splash__wordmark', hidden: true }, 'Weather', h('span', {}, 'Go'));
+  const img = h('img', { src: 'weathergo-logo.png', alt: 'WeatherGo' });
+  img.addEventListener('error', () => { img.remove(); word.hidden = false; });
+  const el = h('div', { class: 'splash', 'aria-hidden': 'true' }, h('div', {}, img, word));
+  document.body.appendChild(el);
+  setTimeout(() => { el.classList.add('is-hidden'); setTimeout(() => el.remove(), 450); }, 1200);
+}
+showSplash();
+window.addEventListener('hashchange', route);
+window.addEventListener('storage', (e) => { if (e.key === STORE_KEY && (location.hash || '#/') === '#/') route(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && location.hash === '#/add') navigate('#/'); });
+route();
+</script>
+</body>
+</html>

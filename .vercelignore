@@ -1,0 +1,6 @@
+# 웹 배포에 필요 없는 파일 (저장소에는 남음)
+app/
+screens/
+*.md
+server.mjs
+env.example
